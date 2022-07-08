@@ -95,9 +95,9 @@ nav {
 
   /* NOTE This creates the fade in/out anumation */
   /* default opacity is 100 */
-  /* opacity: 0; */
+  opacity: 0;
   transition: all 1s;
-}
+} 
 
 .balance {
   grid-column: 1 / span 2;

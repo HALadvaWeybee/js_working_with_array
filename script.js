@@ -79,19 +79,89 @@ const displayMovements = function (movements) {
         
   }); 
 };
-displayMovements(account1.movements);
+
+// 014-lec work
+const calcDisplayBalance = function (account) {
+  account.balance = account.movements.reduce((acc, curr) =>  acc + curr, 0);
+  labelBalance.innerHTML = `${account.balance}€`;
+}
+
+// 016-lec work
+const calcDisplaySummary = function(account) {
+    const incomes = account.movements
+    .filter(mov => mov > 0)
+    .reduce((acc, mov) => acc + mov, 0);
+    labelSumIn.innerHTML = `${incomes}€`;
+
+    const outgones = account.movements
+    .filter(mov => mov < 0)
+    .reduce((acc, mov) => acc + mov, 0);
+    labelSumOut.innerHTML= `${Math.abs(outgones)}€`;
+
+    // calculate the interest on deposits
+    const interest =  account.movements
+    .filter(mov => mov > 0)
+    .map(deposit => deposit * (account.interestRate) / 100)
+    .filter((int, i, arr) => {
+      // console.log(arr);
+      return int >= 1;  
+    })
+    .reduce((acc, curr) => acc + curr, 0);
+    labelSumInterest.innerHTML = `${interest}€`;  
+}
 
 // 012-lec Computing Usernames
 const createUsernames = function (accs) {
     
    accs.forEach(account => {
-       account.userName = account.owner.toLowerCase().split(' ').map(name => name[0]).join('');
-       
-   })
-   const userName = user.;
-   return userName;
+       account.userName = account.owner.toLowerCase().split(' ').map(name => name[0]).join('');  
+   });
 }
-console.log(createUsernames(accounts));
+createUsernames(accounts);
+// console.log(accounts);
+
+// 019-lec Implementing Login
+let currentAccount;
+// Event handler
+btnLogin.addEventListener('click', function(e) {
+  e.preventDefault();
+  
+  currentAccount = accounts.find(acc => acc.userName === inputLoginUsername.value);
+  console.log(currentAccount);
+
+  if(currentAccount?.pin === Number(inputLoginPin.value)) {
+    // Display ui and welcome message
+    labelWelcome.textContent = `Welcome back, ${currentAccount.owner.split(' ')[0]}`;
+    containerApp.style.opacity = 100;
+
+    // clear input fields
+    inputLoginUsername.value = inputLoginPin.value = "";
+    inputLoginPin.blur();
+  
+    // Display movements
+    displayMovements(currentAccount.movements);
+    // Display balance
+    calcDisplayBalance(currentAccount);
+    // Display summary
+    calcDisplaySummary(currentAccount);
+  }
+});
+
+// 020-lec Implementing transfer
+btnTransfer.addEventListener('click', function(e) {
+     e.preventDefault();
+     const amount = inputTransferAmount.value;
+     const receiverAcc = accounts.find(acc => acc.userName === inputTransferTo.value);
+     
+    //  console.log(amount, receiverAcc);
+
+     if(amount > 0 && amount <= currentAccount.balance 
+        && receiverAcc?.userName !== currentAccount.userName 
+      ) {
+         console.log('Transfer valid'); 
+     }
+})
+
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
@@ -201,7 +271,7 @@ currenciesUnique.forEach(function (value) {
 }); */
 
 // 011-lec The map method
-const eurToUsd = 1.1;
+/* const eurToUsd = 1.1;
 
 // simple function
 // const movementsUSD = movements.map(function(mov) {
@@ -218,4 +288,56 @@ const movementsDescription = movements.map((mov,i) =>
   `Movement ${i + 1}: You ${mov > 0 ? 'deposited' : 'withdrew'}`
 );
 
-console.log(movementsDescription);
+console.log(movementsDescription); */
+
+// 013-lec filter method
+/* 
+// const deposits = movements.filter(function (mov) {
+//   return mov < 0;
+// });
+
+const deposits = movements.filter(mov => mov > 0);
+console.log(movements);
+console.log(deposits);
+
+const withdrews = movements.filter(mov => mov < 0);
+console.log(withdrews); */
+
+// 014-lec reduce method
+/* const balance = movements.reduce((acc, curr, i, arr) => {
+  return acc + curr;
+}, 0);
+console.log(balance);
+
+let sum = 0;
+for (const item of movements) {
+   sum += item;
+}
+console.log(sum);
+
+// return maximum value of movements
+const max_value = movements.reduce((acc, curr) => 
+  acc < curr ? acc = curr:curr = acc, movements[0]
+);
+console.log(max_value);  */
+
+// 016-lec The magic of chaining methods
+/* const eurToUsd = 1.1;
+
+// PIPELINE 
+const totalDepositsUSD = movements
+.filter(mov => mov > 0)
+.map((mov) => mov * eurToUsd)
+.reduce((acc, mov) => acc + mov, 0);
+
+console.log(totalDepositsUSD);  */
+
+// 018-lec find method
+/* const firstWithdrawal = movements.find(mov => mov < 0);
+console.log(movements);
+console.log(firstWithdrawal);
+
+console.log(accounts);
+
+const account = accounts.find(acc => acc.owner === "Jessica Davis");
+console.log(account); */
