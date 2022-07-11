@@ -61,107 +61,185 @@ const inputLoanAmount = document.querySelector(".form__input--loan-amount");
 const inputCloseUsername = document.querySelector(".form__input--user");
 const inputClosePin = document.querySelector(".form__input--pin");
 
+// ----------------------------------------------------------------------------------------------------------------------------------
 // 008-lec creating DOM elements
-const displayMovements = function (movements) {
-  containerMovements.innerHTML = '';
+const displayMovements = function (movements, sort = false) {
+  containerMovements.innerHTML = "";
   // .textContent = 0
-  
-  movements.forEach((mov, i) => {
+
+   const movs= sort ? movements.slice().sort((a,b) => a-b) : movements;
+  movs.forEach((mov, i) => {
     const type = mov > 0 ? "deposit" : "withdrawal";
 
     const html = `
     <div class="movements__row">
-      <div class="movements__type movements__type--${type}">${i + 1} ${type}</div>
+      <div class="movements__type movements__type--${type}">${
+      i + 1
+    } ${type}</div>
       <div class="movements__value">${mov}</div>
     </div>
       `;
-      containerMovements.insertAdjacentHTML('afterbegin',html);
-        
-  }); 
+    containerMovements.insertAdjacentHTML("afterbegin", html);
+  });
 };
+// ----------------------------------------------------------------------------------------------------------------------------------
 
 // 014-lec work
 const calcDisplayBalance = function (account) {
-  account.balance = account.movements.reduce((acc, curr) =>  acc + curr, 0);
+  account.balance = account.movements.reduce((acc, curr) => acc + curr, 0);
   labelBalance.innerHTML = `${account.balance}€`;
-}
+};
+// ----------------------------------------------------------------------------------------------------------------------------------
 
 // 016-lec work
-const calcDisplaySummary = function(account) {
-    const incomes = account.movements
-    .filter(mov => mov > 0)
+const calcDisplaySummary = function (account) {
+  const incomes = account.movements
+    .filter((mov) => mov > 0)
     .reduce((acc, mov) => acc + mov, 0);
-    labelSumIn.innerHTML = `${incomes}€`;
+  labelSumIn.innerHTML = `${incomes}€`;
 
-    const outgones = account.movements
-    .filter(mov => mov < 0)
+  const outgones = account.movements
+    .filter((mov) => mov < 0)
     .reduce((acc, mov) => acc + mov, 0);
-    labelSumOut.innerHTML= `${Math.abs(outgones)}€`;
+  labelSumOut.innerHTML = `${Math.abs(outgones)}€`;
 
-    // calculate the interest on deposits
-    const interest =  account.movements
-    .filter(mov => mov > 0)
-    .map(deposit => deposit * (account.interestRate) / 100)
+  // calculate the interest on deposits
+  const interest = account.movements
+    .filter((mov) => mov > 0)
+    .map((deposit) => (deposit * account.interestRate) / 100)
     .filter((int, i, arr) => {
       // console.log(arr);
-      return int >= 1;  
+      return int >= 1;
     })
     .reduce((acc, curr) => acc + curr, 0);
-    labelSumInterest.innerHTML = `${interest}€`;  
-}
+  labelSumInterest.innerHTML = `${interest}€`;
+};
+// ----------------------------------------------------------------------------------------------------------------------------------
 
 // 012-lec Computing Usernames
 const createUsernames = function (accs) {
-    
-   accs.forEach(account => {
-       account.userName = account.owner.toLowerCase().split(' ').map(name => name[0]).join('');  
-   });
-}
+  accs.forEach((account) => {
+    account.userName = account.owner
+      .toLowerCase()
+      .split(" ")
+      .map((name) => name[0])
+      .join("");
+  });
+};
 createUsernames(accounts);
 // console.log(accounts);
+// ----------------------------------------------------------------------------------------------------------------------------------
+
+// 020-lec work
+function updateUi(acc) {
+  // Display movements
+  displayMovements(acc.movements);
+  // Display balance
+  calcDisplayBalance(acc);
+  // Display summary
+  calcDisplaySummary(acc);
+}
+// ----------------------------------------------------------------------------------------------------------------------------------
 
 // 019-lec Implementing Login
 let currentAccount;
 // Event handler
-btnLogin.addEventListener('click', function(e) {
+btnLogin.addEventListener("click", function (e) {
   e.preventDefault();
-  
-  currentAccount = accounts.find(acc => acc.userName === inputLoginUsername.value);
-  console.log(currentAccount);
 
-  if(currentAccount?.pin === Number(inputLoginPin.value)) {
+  currentAccount = accounts.find(
+    (acc) => acc.userName === inputLoginUsername.value
+  );
+  // console.log(currentAccount);
+
+  if (currentAccount?.pin === Number(inputLoginPin.value)) {
     // Display ui and welcome message
-    labelWelcome.textContent = `Welcome back, ${currentAccount.owner.split(' ')[0]}`;
+    labelWelcome.textContent = `Welcome back, ${
+      currentAccount.owner.split(" ")[0]
+    }`;
     containerApp.style.opacity = 100;
 
     // clear input fields
     inputLoginUsername.value = inputLoginPin.value = "";
     inputLoginPin.blur();
-  
-    // Display movements
-    displayMovements(currentAccount.movements);
-    // Display balance
-    calcDisplayBalance(currentAccount);
-    // Display summary
-    calcDisplaySummary(currentAccount);
+
+    // update Ui
+    updateUi(currentAccount);
   }
 });
+// ----------------------------------------------------------------------------------------------------------------------------------
 
 // 020-lec Implementing transfer
-btnTransfer.addEventListener('click', function(e) {
-     e.preventDefault();
-     const amount = inputTransferAmount.value;
-     const receiverAcc = accounts.find(acc => acc.userName === inputTransferTo.value);
-     
-    //  console.log(amount, receiverAcc);
+btnTransfer.addEventListener("click", function (e) {
+  e.preventDefault();
+  const amount = Number(inputTransferAmount.value);
+  const receiverAcc = accounts.find(
+    (acc) => acc.userName === inputTransferTo.value
+  );
 
-     if(amount > 0 && amount <= currentAccount.balance 
-        && receiverAcc?.userName !== currentAccount.userName 
-      ) {
-         console.log('Transfer valid'); 
-     }
+  //  console.log(amount, receiverAcc);
+  inputTransferAmount.value = inputTransferTo.value = "";
+
+  if (
+    amount > 0 &&
+    amount <= currentAccount.balance &&
+    receiverAcc?.userName !== currentAccount.userName
+  ) {
+    //  Doing the transfer
+    currentAccount.movements.push(-amount);
+    receiverAcc.movements.push(amount);
+    // update Ui
+    updateUi(currentAccount);
+  }  
+});
+// ----------------------------------------------------------------------------------------------------------------------------------
+
+// 022-lec work
+btnLoan.addEventListener('click', function(e) {
+  e.preventDefault();
+
+  const amount = Number(inputLoanAmount.value);
+
+  if(amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
+    // add movements
+    currentAccount.movements.push(amount);
+
+    // update ui
+    updateUi(currentAccount);
+  }
+});
+// ----------------------------------------------------------------------------------------------------------------------------------
+
+// 021-lec the findIndex method
+btnClose.addEventListener('click', function(e) {
+   e.preventDefault();
+   const closeAccountName = inputCloseUsername.value;
+   const closeAccountPin = inputClosePin.value;  
+
+   if(currentAccount.userName ===closeAccountName && currentAccount.pin == Number(closeAccountPin)) {
+      const closeAccIndex = accounts.findIndex(acc => acc.userName === closeAccountName);
+      console.log(closeAccIndex);
+
+      // Delete account
+      accounts.splice(closeAccIndex, 1);
+
+      // Hide UI
+      containerApp.style.opacity = 0;
+      
+   }
+   inputCloseUsername.value = inputClosePin.value = "";id
+});
+// ----------------------------------------------------------------------------------------------------------------------------------
+
+// 024-lec work sorting movements
+let sorted = false;
+btnSort.addEventListener('click', function(e) {
+  e.preventDefault();
+  // display movements
+  displayMovements(currentAccount.movements, !sorted);
+
+  sorted  = !sorted;
 })
-
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
@@ -174,7 +252,8 @@ const currencies = new Map([
 
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
-/////////////////////////////////////////////////
+// ----------------------------------------------------------------------------------------------------------------------------------
+
 // 003-lec Simple Array Methods
 /* let arr = ['a', 'b', 'c', 'd', 'e'];
 
@@ -223,8 +302,8 @@ console.log(arr.at(-1));
 
 console.log('jonas'.at(0));
 console.log('jonas'.at(-1)) */
+// ----------------------------------------------------------------------------------------------------------------------------------
 
-///////////////////////////////////////
 // 005-lec Looping Arrays: forEach
 // const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
@@ -249,8 +328,8 @@ movements.forEach(function (mov, i) {
 // 1: function(450)
 // 2: function(400)
 // ...*/
+// ----------------------------------------------------------------------------------------------------------------------------------
 
-///////////////////////////////////////
 // 006-lec forEach With Maps and Sets
 /* // Map
 const currencies = new Map([
@@ -289,6 +368,7 @@ const movementsDescription = movements.map((mov,i) =>
 );
 
 console.log(movementsDescription); */
+// ----------------------------------------------------------------------------------------------------------------------------------
 
 // 013-lec filter method
 /* 
@@ -302,6 +382,7 @@ console.log(deposits);
 
 const withdrews = movements.filter(mov => mov < 0);
 console.log(withdrews); */
+// ----------------------------------------------------------------------------------------------------------------------------------
 
 // 014-lec reduce method
 /* const balance = movements.reduce((acc, curr, i, arr) => {
@@ -320,6 +401,7 @@ const max_value = movements.reduce((acc, curr) =>
   acc < curr ? acc = curr:curr = acc, movements[0]
 );
 console.log(max_value);  */
+// ----------------------------------------------------------------------------------------------------------------------------------
 
 // 016-lec The magic of chaining methods
 /* const eurToUsd = 1.1;
@@ -331,6 +413,7 @@ const totalDepositsUSD = movements
 .reduce((acc, mov) => acc + mov, 0);
 
 console.log(totalDepositsUSD);  */
+// ----------------------------------------------------------------------------------------------------------------------------------
 
 // 018-lec find method
 /* const firstWithdrawal = movements.find(mov => mov < 0);
@@ -341,3 +424,157 @@ console.log(accounts);
 
 const account = accounts.find(acc => acc.owner === "Jessica Davis");
 console.log(account); */
+// ----------------------------------------------------------------------------------------------------------------------------------
+
+// 022-lec some and every
+/* console.log(movements); 
+// check equality
+console.log(movements.includes(-130)); 
+
+// check condition :some method
+console.log(movements.some(mov => mov === -130));
+const anyDeposits = movements.some(mov => mov > 0);
+console.log(anyDeposits);
+
+// every method
+console.log(movements.every(mov => mov > 0)); 
+console.log(account4.movements.every(mov => mov > 0));
+
+// separate callback
+const deposit = mov => mov < 0;
+console.log(movements.some(deposit));
+console.log(movements.every(deposit));
+console.log(movements.filter(deposit)); */
+// ----------------------------------------------------------------------------------------------------------------------------------
+
+// 023 flat and flatMap method
+/*const arr = [[1,2,3], [4,5,6], 7,8];
+console.log(arr.flat());
+
+const arrDeep = [[[1,2],3], [[4,5],6], [7,8]];
+console.log(arrDeep.flat(2));
+
+// calculate the all accounts movements some
+// const accountMovements = accounts.map(acc => acc.movements);
+// console.log(accountMovements);
+// const allMovements = accountMovements.flat();
+// console.log(allMovements);
+
+// const overalBalance = allMovements.reduce((acc, sum, i) => acc + sum, 0);
+// console.log(overalBalance);
+
+// flat mathod
+const overalBalance = accounts
+.map(acc => acc.movements)
+.flat()
+.reduce((acc, sum, i) => acc + sum, 0);
+
+console.log(overalBalance);
+
+// flatMap Method
+const overalBalance2 = accounts
+.flatMap(acc => acc.movements)
+.reduce((acc, sum, i) => acc + sum, 0);
+
+console.log(overalBalance2);  */
+// ----------------------------------------------------------------------------------------------------------------------------------
+
+// 024-lec sorting array 
+/* const owners = ['jonas', 'Zach', 'Adam', 'Martha'];
+console.log(owners.sort());
+console.log(owners);
+
+console.log(movements);
+console.log(movements.sort()); // this sort according to the string
+
+// accending order
+// console.log(movements.sort((a,b) => {
+//   if (a > b) return 1;
+//   if (a < b) return -1;
+// }));
+console.log(movements.sort((a,b) => a-b));
+
+// desending order
+// console.log(movements.sort((a,b) => {
+//   if (a > b) return -1;
+//   if (a < b) return 1;
+// }));
+console.log(movements.sort((a,b) => b - a)); */
+// ----------------------------------------------------------------------------------------------------------------------------------
+
+// 025-lec Ways of creating and filling Arrays
+/* const arr = [1, 2, 3, 4, 5, 6, 7];
+console.log(new Array(1, 2, 3, 4, 5, 6, 7));
+
+// Emprty arrays + fill method
+const x = new Array(7);
+console.log(x);
+// console.log(x.map(() => 5));
+x.fill(1, 3, 5);
+x.fill(1);
+console.log(x);
+
+arr.fill(23, 2, 6);
+console.log(arr);
+
+// Array from() 
+const y = Array.from( {length : 7}, () => 1);
+console.log(y);
+
+const z = Array.from({length : 7}, (_, i) => i + 1);
+console.log(z);
+
+labelBalance.addEventListener('click', function () {
+  const movementsUI = Array.from(
+    document.querySelectorAll('.movements__value'),
+    el => Number(el.textContent.replace('€', ''))
+  );
+  console.log(movementsUI);
+
+  const movementsUI2 = [...document.querySelectorAll('.movements__value')];
+  console.log(movementsUI2);
+}); */
+// ----------------------------------------------------------------------------------------------------------------------------------
+
+// 027-lec simple array method
+
+/* // 1.
+const depositTotal = accounts
+.flatMap(acc => acc.movements)
+.filter(mov => mov > 0)
+.reduce((acc, curr) => acc + curr, 0);
+
+console.log(depositTotal);
+
+// 2.
+const atLeast1000 = accounts.flatMap(acc => acc.movements)
+.filter(mov => mov >= 1000).length;
+
+console.log(atLeast1000);
+
+// 3.
+const sums = accounts
+.flatMap(acc => acc.movements)
+.reduce((sum, cur) => {
+  // cur > 0 ? (sum.deposits += cur) : (sum.withdrawals += cur);
+  sum[cur > 0 ? 'deposits' : 'withdrawals']+= cur;
+  return sum;
+},
+ {deposits: 0, withdrawals: 0}
+);
+
+console.log(sums);
+
+// 4.
+// this is a nice title -> This Is a Nice Title
+const convertTitleCase = function(title) {
+    const exceptions = ['a', 'an', 'the', 'but', 'or', 'on', 'in', 'with'];
+
+    const titleCase = title.toLowerCase().split(' ')
+    .map(ele => exceptions.includes(ele) ? ele : ele[0].toUpperCase() + ele.slice(1))
+    .join(" ");
+
+    console.log(titleCase);
+};
+
+convertTitleCase("this is a nice title"); */
