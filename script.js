@@ -60,14 +60,31 @@ const inputTransferAmount = document.querySelector(".form__input--amount");
 const inputLoanAmount = document.querySelector(".form__input--loan-amount");
 const inputCloseUsername = document.querySelector(".form__input--user");
 const inputClosePin = document.querySelector(".form__input--pin");
+const logOut = document.querySelector(".log_out");
 
 // ----------------------------------------------------------------------------------------------------------------------------------
+
+// showing data
+const date = new Date();
+labelDate.innerHTML = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}   ${date.getHours()}:${date.getMinutes()}`;
+
+// log-out features
+logOut.addEventListener("click", function(e) {
+    e.preventDefault();
+    containerApp.style.opacity = 0;
+    labelWelcome.textContent = `Log in to get started`;
+    inputLoginUsername.classList.remove("hidden");
+    inputLoginPin.classList.remove("hidden");
+    logOut.classList.add("hidden");
+    btnLogin.classList.remove("hidden");
+});
+
 // 008-lec creating DOM elements
 const displayMovements = function (movements, sort = false) {
   containerMovements.innerHTML = "";
   // .textContent = 0
 
-   const movs= sort ? movements.slice().sort((a,b) => a-b) : movements;
+  const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
   movs.forEach((mov, i) => {
     const type = mov > 0 ? "deposit" : "withdrawal";
 
@@ -163,6 +180,11 @@ btnLogin.addEventListener("click", function (e) {
     inputLoginUsername.value = inputLoginPin.value = "";
     inputLoginPin.blur();
 
+    // show-logOut button
+    logOut.classList.remove("hidden");
+    inputLoginUsername.classList.add("hidden");
+    inputLoginPin.classList.add("hidden");
+    btnLogin.classList.add("hidden");
     // update Ui
     updateUi(currentAccount);
   }
@@ -190,17 +212,20 @@ btnTransfer.addEventListener("click", function (e) {
     receiverAcc.movements.push(amount);
     // update Ui
     updateUi(currentAccount);
-  }  
+  }
 });
 // ----------------------------------------------------------------------------------------------------------------------------------
 
 // 022-lec work
-btnLoan.addEventListener('click', function(e) {
+btnLoan.addEventListener("click", function (e) {
   e.preventDefault();
 
   const amount = Number(inputLoanAmount.value);
 
-  if(amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
+  if (
+    amount > 0 &&
+    currentAccount.movements.some((mov) => mov >= amount * 0.1)
+  ) {
     // add movements
     currentAccount.movements.push(amount);
 
@@ -211,35 +236,42 @@ btnLoan.addEventListener('click', function(e) {
 // ----------------------------------------------------------------------------------------------------------------------------------
 
 // 021-lec the findIndex method
-btnClose.addEventListener('click', function(e) {
-   e.preventDefault();
-   const closeAccountName = inputCloseUsername.value;
-   const closeAccountPin = inputClosePin.value;  
+btnClose.addEventListener("click", function (e) {
+  e.preventDefault();
+  const closeAccountName = inputCloseUsername.value;
+  const closeAccountPin = inputClosePin.value;
 
-   if(currentAccount.userName ===closeAccountName && currentAccount.pin == Number(closeAccountPin)) {
-      const closeAccIndex = accounts.findIndex(acc => acc.userName === closeAccountName);
-      console.log(closeAccIndex);
+  if (
+    currentAccount.userName === closeAccountName &&
+    currentAccount.pin == Number(closeAccountPin)
+  ) {
+    const closeAccIndex = accounts.findIndex(
+      (acc) => acc.userName === closeAccountName
+    );
+    console.log(closeAccIndex);
 
-      // Delete account
-      accounts.splice(closeAccIndex, 1);
+    // Delete account
+    accounts.splice(closeAccIndex, 1);
 
-      // Hide UI
-      containerApp.style.opacity = 0;
-      
-   }
-   inputCloseUsername.value = inputClosePin.value = "";id
+    // Hide UI
+    containerApp.style.opacity = 0;
+  }
+  inputCloseUsername.value = inputClosePin.value = "";
+
+  // fix my message issue 
+  labelWelcome.textContent = `Log in to get started`;
 });
 // ----------------------------------------------------------------------------------------------------------------------------------
 
 // 024-lec work sorting movements
 let sorted = false;
-btnSort.addEventListener('click', function(e) {
+btnSort.addEventListener("click", function (e) {
   e.preventDefault();
   // display movements
   displayMovements(currentAccount.movements, !sorted);
 
-  sorted  = !sorted;
-})
+  sorted = !sorted;
+});
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
@@ -479,7 +511,7 @@ const overalBalance2 = accounts
 console.log(overalBalance2);  */
 // ----------------------------------------------------------------------------------------------------------------------------------
 
-// 024-lec sorting array 
+// 024-lec sorting array
 /* const owners = ['jonas', 'Zach', 'Adam', 'Martha'];
 console.log(owners.sort());
 console.log(owners);

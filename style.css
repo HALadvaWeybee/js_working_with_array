@@ -43,6 +43,25 @@ nav {
   display: flex;
 }
 
+/* Log-out button */
+.log_out {
+   padding: 11px;
+   background-color: #00bbf0;
+   font-size: 17px;
+   color: white;
+   border-radius: 50px;
+   border: none;
+}
+
+.log_out:hover {
+  background-color: #3a9ab4;
+  box-shadow: 3px 1px 18px #143e49;
+}
+
+.hidden {
+  display: none;
+}
+
 .login__input {
   border: none;
   padding: 0.5rem 2rem;
